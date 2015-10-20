@@ -287,10 +287,20 @@ public class CSE535Assignment {
 		LinkedList<docidwithfreq> aux2 = new LinkedList<docidwithfreq>();
 		
 		int i,m,n,s1,s2,comp=0;
-		res.addAll(term_index.get(terms[0]).index_termfreq);
-
 		Result final_res = new Result();
 		
+		for(i=0;i<terms.length;i++)
+		{
+			if(!term_index.containsKey(terms[i]))
+			{
+				final_res.comp = 0;
+				final_res.result = null;
+				return final_res;
+			}
+		}
+		
+		res.addAll(term_index.get(terms[0]).index_termfreq);
+
 		for(i=1;i<terms.length;i++)
 		{
 			aux.clear();
@@ -334,10 +344,30 @@ public class CSE535Assignment {
 		LinkedList<docidwithfreq> aux = new LinkedList<docidwithfreq>();
 		LinkedList<docidwithfreq> aux2 = new LinkedList<docidwithfreq>();
 		
+		ArrayList<String> terms_list = new ArrayList<String>(Arrays.asList(terms));
+		Result final_res = new Result();
+		
+		
+		for(i=0;i<terms_list.size();i++)
+		{
+			if(!term_index.containsKey(terms_list.get(i)))
+			{
+				terms_list.remove(i);
+			}
+		}
+		
+		if(terms_list.size()==0)
+		{
+			final_res.comp = 0;
+			final_res.result = null;
+			return final_res;
+		}
+		
+		
+		
 		int comp = 0;
 		res.addAll(term_index.get(terms[0]).index_termfreq);
 		comp = comp + res.size();
-		Result final_res = new Result();
 		boolean flag = true;
 		for(i=1;i<terms.length;i++)
 		{
@@ -407,11 +437,22 @@ public class CSE535Assignment {
 		
 		LinkedList<docidwithfreq> aux = new LinkedList<docidwithfreq>();
 		
-		Result final_res = new Result(); 
+		Result final_res = new Result();
+		int i,nterms = terms.length;
+		
+		for(i=0;i<terms.length;i++)
+		{
+			if(!term_index.containsKey(terms[i]))
+			{
+				final_res.comp = 0;
+				final_res.result = null;
+				return final_res;
+			}
+		}
+		
+		
 		ArrayList<Integer> pointers = new ArrayList<Integer>(terms.length);
 		
-		
-		int i,nterms = terms.length;
 		
 		for(i=0;i<nterms;i++)
 			pointers.add(0);
@@ -490,10 +531,6 @@ public class CSE535Assignment {
 
 	}
 	
-	public class docAtATimeObject
-	{
-		
-	}
 
 	public int findmin(ArrayList<Integer> pointers,ArrayList<String> terms)
 	{
@@ -509,9 +546,7 @@ public class CSE535Assignment {
 			}
 		}
 		
-		return res;
-		
-		
+		return res;				
 	}
 	
 	
@@ -524,15 +559,30 @@ public class CSE535Assignment {
 		LinkedList<docidwithfreq> aux = new LinkedList<docidwithfreq>();
 		
 		Result final_res = new Result(); 
-		ArrayList<Integer> pointers = new ArrayList<Integer>(terms.length);
-		
-		
 		int i,nterms = terms.length;
 		ArrayList<String> terms_list = new ArrayList<String>(Arrays.asList(terms));
+		
+		for(i=0;i<terms_list.size();i++)
+		{
+			if(!term_index.containsKey(terms_list.get(i)))
+			{
+				terms_list.remove(i);
+			}
+		}
+		
+		if(terms_list.size()==0)
+		{
+			final_res.comp = 0;
+			final_res.result = null;
+			return final_res;
+		}
+		
+		ArrayList<Integer> pointers = new ArrayList<Integer>(terms_list.size());
+		
+		
 		for(i=0;i<nterms;i++)
 			pointers.add(0);
-		Integer min = 0;
-		Heap h = new Heap();
+		Integer min = 0;		
 		String minstring = term_index.get(terms_list.get(0)).index_docId.get(pointers.get(0)).docid;
 		String tmp;
 		int count = 0;
@@ -560,6 +610,7 @@ public class CSE535Assignment {
 						{	
 							pointers.remove(i);
 							terms_list.remove(i);
+							i--;
 						}
 						count++;
 					}
@@ -569,6 +620,7 @@ public class CSE535Assignment {
 				{
 					pointers.remove(i);
 					terms_list.remove(i);
+					i--;
 				}
 				
 			}
@@ -611,11 +663,7 @@ public class CSE535Assignment {
 			String auxdocid;
 			Integer auxtfreq;
 			int i,next,j=0;
-
-			
-			
-			
-			
+	
 			PrintWriter writer = new PrintWriter("output.txt","UTF-8");			
 			writer.println("FUNCTION: getTopK "+k);
 			writer.print("Result: ");
@@ -631,27 +679,45 @@ public class CSE535Assignment {
 			writer.print(res[i]);
 			writer.println();
 			LinkedList<docidwithfreq> result = new LinkedList<docidwithfreq>();
+			ArrayList<Integer> valid_place = new ArrayList<Integer>();
 			long startTime,endTime;
 			int s;
 			Result out;
-			
+			boolean flag_single = false,flag_all = false;
 			while((line=bufferedreader.readLine())!=null)
 			{
+				flag_single = false;
+				flag_all = true;
+				valid_place = new ArrayList<Integer>();
 				if(line.trim().isEmpty())
 					break;
 				terms = line.split(" ");
 				sorted_terms = Arrays.copyOf(terms, terms.length);
-				System.out.println("postings printing");
+				
 				//Printing postings
 				for(j=0;j<terms.length;j++)
 				{
-					writer.println("FUNCTION: getPostings "+terms[j]);
-					writer.print("Ordered by doc IDs: ");		
+					
+					writer.println("FUNCTION: getPostings "+terms[j]+", ");
+					writer.print("Ordered by doc IDs: ");
+					
+					if(!term_index.containsKey(terms[j]))
+					{
+						writer.println("Term not found in index");
+						writer.print("Ordered by TF: ");
+						writer.println("Term not found in index");
+						flag_single = true;
+						continue;
+					}
+					
+					flag_all = false;
+					valid_place.add(j);
 					LinkedList<docidwithfreq> post = term_index.get(terms[j]).index_docId;
 					s = post.size();
+					
 					for(i=0;i<s-1;i++)
 					{
-						writer.print(post.get(i).docid+" ");
+						writer.print(post.get(i).docid+", ");
 					}					
 					writer.println(post.get(i).docid);
 
@@ -660,7 +726,7 @@ public class CSE535Assignment {
 					s = post.size();
 					for(i=0;i<s-1;i++)
 					{
-						writer.print(post.get(i).docid+" ");
+						writer.print(post.get(i).docid+", ");
 					}					
 					writer.print(post.get(i).docid);
 					writer.println();
@@ -669,17 +735,24 @@ public class CSE535Assignment {
 				//termAtATimeQueryAnd Starting						
 				writer.print("FUNCTION: termAtATimeQueryAnd ");
 				for(i=0;i<terms.length-1;i++)
-					writer.print(terms[i]+",");
+					writer.print(terms[i]+", ");
 				writer.println(terms[i]);
 				startTime = System.currentTimeMillis();
 				out = termAtATimeAnd(terms);				
 				endTime = System.currentTimeMillis();
 				result = out.result;
-				writer.println(result.size()+" documents are found");
+				if(result.size()==0)
+				{
+					writer.println(0+" documents are found");
+				}
+				else
+				{
+					writer.println(result.size()+" documents are found");
+				}
 				writer.println(out.comp+" comparisions are made");
 				writer.println((endTime-startTime)/1000+" seconds are used");
 				
-				
+				//optimized termATATimeAnd by sorting the terms based on frequency
 				Arrays.sort(sorted_terms,new termcompare());
 				for(i=0;i<sorted_terms.length;i++)
 					System.out.print(sorted_terms[i]+" "+term_index.get(sorted_terms[i]).termfreq);
@@ -690,7 +763,7 @@ public class CSE535Assignment {
 				{
 					for(i=0;i<result.size()-1;i++)
 					{
-						writer.print(result.get(i).docid+",");
+						writer.print(result.get(i).docid+", ");
 					}
 					writer.println(result.get(i).docid);
 				}
@@ -700,16 +773,24 @@ public class CSE535Assignment {
 				//termAtATimeQueryOr Starting				
 				writer.print("FUNCTION: termAtATimeQueryOr ");
 				for(i=0;i<terms.length-1;i++)
-					writer.print(terms[i]+",");
+					writer.print(terms[i]+", ");
 				writer.println(terms[i]);
 				startTime = System.currentTimeMillis();
 				out = termAtATimeOr(terms);				
 				endTime = System.currentTimeMillis();
 				result = out.result;
-				writer.println(result.size()+" documents are found");
+				if(result.size()==0)
+				{
+					writer.println(0+" documents are found");
+				}
+				else
+				{
+					writer.println(result.size()+" documents are found");
+				}
 				writer.println(out.comp+" comparisions are made");
 				writer.println((endTime-startTime)/1000+" seconds are used");
 				
+				//optimized termATATimeOr by sorting the terms based on frequency
 				out = termAtATimeOr(sorted_terms);
 				writer.println(out.comp+" comparisions are made with optimization");
 				writer.print("Result: ");
@@ -718,7 +799,7 @@ public class CSE535Assignment {
 				{
 					for(i=0;i<result.size()-1;i++)
 					{
-						writer.print(result.get(i).docid+",");
+						writer.print(result.get(i).docid+", ");
 					}
 					writer.println(result.get(i).docid);
 				}
@@ -728,13 +809,20 @@ public class CSE535Assignment {
 				//documentAtATimeQueryAnd Starting				
 				writer.print("FUNCTION: documentAtATimeQueryAnd ");
 				for(i=0;i<terms.length-1;i++)
-					writer.print(terms[i]+",");
+					writer.print(terms[i]+", ");
 				writer.println(terms[i]);
 				startTime = System.currentTimeMillis();
 				out = documentAtATimeAnd(terms);				
 				endTime = System.currentTimeMillis();
 				result = out.result;
-				writer.println(result.size()+" documents are found");
+				if(result.size()==0)
+				{
+					writer.println(0+" documents are found");
+				}
+				else
+				{
+					writer.println(result.size()+" documents are found");
+				}
 				writer.println(out.comp+" comparisions are made");
 				writer.println((endTime-startTime)/1000+" seconds are used");
 				
@@ -743,7 +831,7 @@ public class CSE535Assignment {
 				{	
 					for(i=0;i<result.size()-1;i++)
 					{
-						writer.print(result.get(i).docid+",");
+						writer.print(result.get(i).docid+", ");
 					}
 					writer.println(result.get(i).docid);
 				}
@@ -753,7 +841,7 @@ public class CSE535Assignment {
 				//documentAtATimeQueryOr Starting				
 				writer.print("FUNCTION: documentAtATimeQueryOr ");
 				for(i=0;i<terms.length-1;i++)
-					writer.print(terms[i]+",");
+					writer.print(terms[i]+", ");
 				writer.println(terms[i]);
 				startTime = System.currentTimeMillis();
 				out = documentAtATimeOr(terms);				
@@ -768,29 +856,17 @@ public class CSE535Assignment {
 				{	
 					for(i=0;i<result.size()-1;i++)
 					{
-						writer.print(result.get(i).docid+",");
+						writer.print(result.get(i).docid+", ");
 					}
 					writer.println(result.get(i).docid);
 				}
 				else
 					writer.println("0 documents found");
-						
-						/*
-						for (Map.Entry<String,LinkedList> entry : index_docId.entrySet()) {
-							  String key = entry.getKey();
-							  LinkedList<docidwithfreq> value = entry.getValue();
-							  // do stuff
-							  writer.print(key+" ");
-							  for(i=0;i<value.size();i++)
-							  {
-								  writer.print(value.get(i).docid+",");
-							  }
-							  writer.println();
-						}*/
-								
+				
 			}
 			writer.close();
 			bufferedreader.close();
+			
 		}
 		catch(Exception e)
 		{
@@ -799,38 +875,35 @@ public class CSE535Assignment {
 		}	
 	}
 	
+	public void check(LinkedList<docidwithfreq> res)
+	{
+		int i;
+		int l = res.size();
+		
+		for(i=0;i<l-1;i++)
+		{
+			if(res.get(i).docid.equals(res.get(i+1).docid))
+			{
+				
+				System.out.println("duplicate "+res.get(i).docid);
+			}
+		}
+		
+		
+	}
+	
 	
 	public static void main(String args[])
 	{
 		
 		CSE535Assignment obj = new CSE535Assignment();
 		
-		System.out.println(args.length);
 		String index_file = args[0];
 		String output_log = args[1];
 		int k = Integer.valueOf(args[2]);
 		String query_file = args[3];
-		System.out.println(query_file);
 		obj.create_index(index_file,k);
 		obj.runqueries(query_file,k);
-		int i;
-		
-		System.out.println("size iis "+index_docId.size());
-		
-		
-		
-		//printing
-		/*for (Map.Entry<String,LinkedList> entry : index_docId.entrySet()) {
-			  String key = entry.getKey();
-			  LinkedList<docidwithfreq> value = entry.getValue();
-			  // do stuff
-			  System.out.print(key+" ");
-			  for(i=0;i<value.size();i++)
-			  {
-				  System.out.print(value.get(i).docid+",");
-			  }
-			  System.out.println();
-		}*/
 		
 	}
 	
