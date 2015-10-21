@@ -23,6 +23,7 @@ public class CSE535Assignment {
 		Integer freq;
 	}
 	
+	//Posting nodes
 	class PostingObject
 	{
 		Integer termfreq;
@@ -66,12 +67,14 @@ public class CSE535Assignment {
 				            return o1.freq.compareTo(o2.freq);
 				}
 	}
-
+	
+	//index dictionary
 	static HashMap<String,PostingObject> term_index = new HashMap<String,PostingObject>();
-	static HashMap<String,LinkedList<docidwithfreq> > index_docId = new HashMap<String,LinkedList<docidwithfreq> >();
-	static HashMap<String,LinkedList<docidwithfreq> > index_termfreq = new HashMap<String,LinkedList<docidwithfreq> >();
+	
 	static PriorityQueue<docidwithfreq> topk;
 		
+	
+	//creating index based on docID and term frequency
 	public void create_index(String index_file, int k)
 	{
 		String line = new String();
@@ -83,14 +86,12 @@ public class CSE535Assignment {
 			FileReader fileReader = new FileReader(url.getPath());
 			BufferedReader bufferedreader = new BufferedReader(fileReader);
 			int first_break,second_break;
-			LinkedList<String> aux_docId = new LinkedList<String>();
 			int aux_tfreq;
-			String aux_term;
-			String[] aux_postingdocs;
+			String aux_term;			
 			String temp;
 			String auxdocid;
 			Integer auxtfreq;
-			int i,next,j=0,nterms,tmp;
+			int i,nterms,tmp;
 			String[] tmp_docid;
 			while((line=bufferedreader.readLine())!=null)
 			{
@@ -163,6 +164,7 @@ public class CSE535Assignment {
 		int i,m,n,s1,s2,comp=0;
 		Result final_res = new Result();
 		
+		//Checking if any term is not present in index
 		for(i=0;i<terms.length;i++)
 		{
 			if(!term_index.containsKey(terms[i]))
@@ -173,8 +175,10 @@ public class CSE535Assignment {
 			}
 		}
 		
+		//Adding all the docIDs of first term
 		res.addAll(term_index.get(terms[0]).index_termfreq);
 
+		//Iterating over all the terms posting list
 		for(i=1;i<terms.length;i++)
 		{
 			aux.clear();
@@ -186,6 +190,8 @@ public class CSE535Assignment {
 			s2 = aux2.size();
 			m = 0;
 			n = 0;
+			//Comparing every docId of current result with all the docIDs of 
+			//next term and adding it to final result only if it is present in the posting list of the next term
 			while(m<s1)
 			{
 				n = 0;
@@ -216,17 +222,21 @@ public class CSE535Assignment {
 		LinkedList<docidwithfreq> res = new LinkedList<docidwithfreq>();
 		
 		int i,m,n,s1,s2;
-		LinkedList<docidwithfreq> aux = new LinkedList<docidwithfreq>();
 		LinkedList<docidwithfreq> aux2 = new LinkedList<docidwithfreq>();
 		
 		ArrayList<String> terms_list = new ArrayList<String>(Arrays.asList(terms));
 		Result final_res = new Result();
-				
-		for(i=0;i<terms_list.size();i++)
+		
+		//Removing all the terms which are not present in index
+		for(i=0;i<terms_list.size();)
 		{
 			if(!term_index.containsKey(terms_list.get(i)))
 			{
 				terms_list.remove(i);
+			}
+			else
+			{
+				i++;
 			}
 		}
 		
@@ -240,9 +250,13 @@ public class CSE535Assignment {
 		terms = terms_list.toArray(new String[terms_list.size()]);
 		
 		int comp = 0;
+		
+		//Adding all the docId of first term
 		res.addAll(term_index.get(terms[0]).index_termfreq);
 		comp = comp + res.size();
 		boolean flag = true;
+		
+		//Iterating over all the terms index
 		for(i=1;i<terms.length;i++)
 		{
 			aux2 = term_index.get(terms[i]).index_termfreq;
@@ -251,6 +265,8 @@ public class CSE535Assignment {
 			s1 = res.size();
 			s2 = aux2.size();
 			
+			//Comparing every docId of current result with all the docID of 
+			//next term and adding it to final result only if it is not a duplicate
 			while(n<s2)
 			{
 				
@@ -320,6 +336,7 @@ public class CSE535Assignment {
 		Result final_res = new Result();
 		int i,nterms = terms.length;
 		
+		//Checking if any term is not present in index
 		for(i=0;i<terms.length;i++)
 		{
 			if(!term_index.containsKey(terms[i]))
@@ -343,6 +360,8 @@ public class CSE535Assignment {
 		boolean flag = false;
 		int comp = 0;
 		ArrayList<Integer> temp = new ArrayList<Integer>();
+		
+		//Iterate until any 1 posting list is entirely checked
 		while(true)
 		{
 			temp = findmax(pointers,terms);
@@ -351,37 +370,44 @@ public class CSE535Assignment {
 			maxstring = term_index.get(terms[max]).index_docId.get(pointers.get(max)).docid;
 			count = 0;
 			flag = false;
+			
+
+			//Comparing all the currently pointing docIDs of the posting lists and
+			//incrementing all the pointers except that of max docID
 			for(i=0;i<nterms;i++)
 			{
-				
-				aux = term_index.get(terms[i]).index_docId;
-				
-				if(pointers.get(i).compareTo(aux.size())<0)
+				if(i!=max)
 				{
-					comp++;
-					tmp = term_index.get(terms[i]).index_docId.get(pointers.get(i)).docid;
-					if(maxstring.equals(tmp))
+					aux = term_index.get(terms[i]).index_docId;
+					
+					
+					if(pointers.get(i).compareTo(aux.size())<0)
 					{
-						count++;
+						comp++;
+						tmp = term_index.get(terms[i]).index_docId.get(pointers.get(i)).docid;
+						//Comparing if the current docId is equal to max docId
+						if(maxstring.equals(tmp))
+						{
+							count++;
+						}
+						else
+						{
+							pointers.set(i, pointers.get(i)+1);
+							if(pointers.get(i).compareTo(aux.size())>=0)
+							{	
+								flag = true;
+							}
+						}
 					}
 					else
 					{
-						pointers.set(i, pointers.get(i)+1);
-						if(pointers.get(i).compareTo(aux.size())>=0)
-						{	
-							flag = true;
-						}
+						flag = true;
+						break;
 					}
 				}
-				else
-				{
-					flag = true;
-					break;
-				}
-				
 			}
-			
-			if(count == nterms)
+			//If all the docId have matched then add the docID to result and increment all pointers
+			if(count == nterms-1)
 			{
 				res.add(term_index.get(terms[max]).index_docId.get(pointers.get(max)));
 				
@@ -447,12 +473,15 @@ public class CSE535Assignment {
 		int i,nterms;
 		ArrayList<String> terms_list = new ArrayList<String>(Arrays.asList(terms));
 		
-		for(i=0;i<terms_list.size();i++)
+		//Removing the terms which are not present in index
+		for(i=0;i<terms_list.size();)
 		{
 			if(!term_index.containsKey(terms_list.get(i)))
 			{
 				terms_list.remove(i);
 			}
+			else
+				i++;
 		}
 		
 		if(terms_list.size()==0)
@@ -474,7 +503,7 @@ public class CSE535Assignment {
 		String minstring = term_index.get(terms_list.get(0)).index_docId.get(pointers.get(0)).docid;
 		String tmp;
 		int count = 0;
-		boolean flag = false;
+		
 		int comp = 0;
 		ArrayList<Integer> temp = new ArrayList<Integer>();
 		
@@ -486,7 +515,7 @@ public class CSE535Assignment {
 			return final_res;
 		}
 		
-		
+		//Iterate till all the posting lists have been checked
 		while(nterms>0)
 		{
 			
@@ -496,6 +525,9 @@ public class CSE535Assignment {
 			minstring = term_index.get(terms_list.get(min)).index_docId.get(pointers.get(min)).docid;
 			count = 0;
 			res.add(term_index.get(terms_list.get(min)).index_docId.get(pointers.get(min)));
+			
+			//Comparing all the currently pointing docIDs of the posting lists and
+			//incrementing only the pointers of minimum docIDs
 			for(i=0;i<pointers.size();i++)
 			{
 				aux = term_index.get(terms_list.get(i)).index_docId;
@@ -539,7 +571,9 @@ public class CSE535Assignment {
 	{
 		String line = new String();
 
+		//Reading the query input file
 		URL url = getClass().getClassLoader().getResource(queryfile);
+		
 		try{
 			FileReader fileReader = new FileReader(url.getPath());
 			BufferedReader bufferedreader = new BufferedReader(fileReader);
@@ -587,19 +621,17 @@ public class CSE535Assignment {
 				
 				//Printing postings
 				for(j=0;j<terms.length;j++)
-				{
-					
+				{					
 					writer.println("FUNCTION: getPostings "+terms[j]);
-					writer.print("Ordered by doc IDs: ");
-					
 					if(!term_index.containsKey(terms[j]))
 					{
-						writer.println("Term not found in index");
-						writer.print("Ordered by TF: ");
-						writer.println("Term not found in index");
+						writer.println("term not found");
 						flag_single = true;
 						continue;
 					}
+					writer.print("Ordered by doc IDs: ");
+					
+					
 					
 					flag_all = false;
 					valid_place.add(j);
@@ -632,32 +664,37 @@ public class CSE535Assignment {
 				out = termAtATimeAnd(terms);				
 				endTime = System.currentTimeMillis();
 				result = out.result;
+				Arrays.sort(sorted_terms,new termcompare());
+				
 				if(result ==null)
 				{
-					writer.println("0 documents are found");
+					writer.println("terms not found");
 				}
 				else
 				{
 					writer.println(result.size()+" documents are found");
+					writer.println(out.comp+" comparisions are made");
+					writer.println((endTime-startTime)/1000+" seconds are used");					
 				}
-				writer.println(out.comp+" comparisions are made");
-				writer.println((endTime-startTime)/1000+" seconds are used");
 				
 				//optimized termATATimeAnd by sorting the terms based on frequency
-				Arrays.sort(sorted_terms,new termcompare());
-				out = termAtATimeAnd(sorted_terms);
-				writer.println(out.comp+" comparisions are made with optimization");
-				writer.print("Result: ");
-				if(result !=null && result.size()>0)
+				if(result!=null)
 				{
-					for(i=0;i<result.size()-1;i++)
+					out = termAtATimeAnd(sorted_terms);
+					writer.println(out.comp+" comparisions are made with optimization");
+					writer.print("Result: ");					
+					if(result.size()>0)
 					{
-						writer.print(result.get(i).docid+", ");
+						for(i=0;i<result.size()-1;i++)
+						{
+							writer.print(result.get(i).docid+", ");
+						}
+						writer.println(result.get(i).docid);
 					}
-					writer.println(result.get(i).docid);
+					else
+						writer.println("0 documents found");
 				}
-				else
-					writer.println("0 documents found");
+				
 				
 				//termAtATimeQueryOr Starting				
 				writer.print("FUNCTION: termAtATimeQueryOr ");
@@ -670,30 +707,34 @@ public class CSE535Assignment {
 				result = out.result;
 				if(result ==null)
 				{
-					writer.println("0 documents are found");
+					writer.println("terms not found");
 				}
 				else
 				{
 					writer.println(result.size()+" documents are found");
+					writer.println(out.comp+" comparisions are made");
+					writer.println((endTime-startTime)/1000+" seconds are used");						
 				}
-				writer.println(out.comp+" comparisions are made");
-				writer.println((endTime-startTime)/1000+" seconds are used");
 				
-				//optimized termATATimeOr by sorting the terms based on frequency
-				out = termAtATimeOr(sorted_terms);
-				writer.println(out.comp+" comparisions are made with optimization");
-				writer.print("Result: ");
-				
-				if(result !=null && result.size()>0)
+				if(result!=null)
 				{
-					for(i=0;i<result.size()-1;i++)
+					//optimized termATATimeOr by sorting the terms based on frequency
+					out = termAtATimeOr(sorted_terms);
+					writer.println(out.comp+" comparisions are made with optimization");
+					writer.print("Result: ");
+					
+					if(result.size()>0)
 					{
-						writer.print(result.get(i).docid+", ");
+						for(i=0;i<result.size()-1;i++)
+						{
+							writer.print(result.get(i).docid+", ");
+						}
+						writer.println(result.get(i).docid);
 					}
-					writer.println(result.get(i).docid);
+					else
+						writer.println("0 documents found");
 				}
-				else
-					writer.println("0 documents found");
+				
 				
 				//documentAtATimeQueryAnd Starting				
 				writer.print("FUNCTION: documentAtATimeQueryAnd ");
@@ -706,26 +747,27 @@ public class CSE535Assignment {
 				result = out.result;
 				if(result ==null)
 				{
-					writer.println("0 documents are found");
+					writer.println("terms not found");
 				}
 				else
 				{
 					writer.println(result.size()+" documents are found");
-				}
-				writer.println(out.comp+" comparisions are made");
-				writer.println((endTime-startTime)/1000+" seconds are used");
-				
-				writer.print("Result: ");
-				if(result !=null && result.size()>0)
-				{	
-					for(i=0;i<result.size()-1;i++)
-					{
-						writer.print(result.get(i).docid+", ");
+					writer.println(out.comp+" comparisions are made");
+					writer.println((endTime-startTime)/1000+" seconds are used");
+					writer.print("Result: ");
+					if(result !=null && result.size()>0)
+					{	
+						for(i=0;i<result.size()-1;i++)
+						{
+							writer.print(result.get(i).docid+", ");
+						}
+						writer.println(result.get(i).docid);
 					}
-					writer.println(result.get(i).docid);
+					else
+						writer.println("0 documents found");
+					
 				}
-				else
-					writer.println("0 documents found");
+				
 				
 				//documentAtATimeQueryOr Starting				
 				writer.print("FUNCTION: documentAtATimeQueryOr ");
@@ -736,22 +778,29 @@ public class CSE535Assignment {
 				out = documentAtATimeOr(terms);				
 				endTime = System.currentTimeMillis();
 				result = out.result;
-				writer.println(result.size()+" documents are found");
-				writer.println(out.comp+" comparisions are made");
-				writer.println((endTime-startTime)/1000+" seconds are used");
 				
-				writer.print("Result: ");
-				if(result !=null && result.size()>0)
-				{	
-					for(i=0;i<result.size()-1;i++)
-					{
-						writer.print(result.get(i).docid+", ");
-					}
-					writer.println(result.get(i).docid);
+				if(result==null)
+				{
+					writer.println("terms not found");
 				}
 				else
-					writer.println("0 documents found");
-				
+				{
+					writer.println(result.size()+" documents are found");
+					writer.println(out.comp+" comparisions are made");
+					writer.println((endTime-startTime)/1000+" seconds are used");
+					
+					writer.print("Result: ");
+					if(result !=null && result.size()>0)
+					{	
+						for(i=0;i<result.size()-1;i++)
+						{
+							writer.print(result.get(i).docid+", ");
+						}
+						writer.println(result.get(i).docid);
+					}
+					else
+						writer.println("0 documents found");
+				}
 			}
 			writer.close();
 			bufferedreader.close();
