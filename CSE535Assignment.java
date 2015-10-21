@@ -16,120 +16,7 @@ import java.util.PriorityQueue;
 
 public class CSE535Assignment {
 
-	
-	class Heapobject
-	{
-		String docid;
-		Integer pointer;
-	}
-	
-	class Heap {
-
 		
-		ArrayList<Integer> heap = new ArrayList<Integer>();
-		int size=0;		
-		public ArrayList<Integer> Buildheap(ArrayList<Integer> A)
-		{
-			int n = A.size();
-			size = n;
-			int i;
-			heap.add(-1);
-			for(i=0;i<n;i++)
-			{
-				heap.add(A.get(i));
-			}
-			i = (int)Math.ceil((n)/2);
-			for(;i>=1;i--)
-			{
-				percolateDown(heap,i);
-			}
-			
-			return heap;
-		}
-		
-		
-		public int deleteMin()
-		{
-			int tmp = heap.get(1);
-			heap.set(1, heap.get(size));
-			heap.remove(size);
-			size--;		
-			percolateDown(heap,1);
-			return tmp;
-		}
-		
-		public void add(int t)
-		{
-			heap.add(t);
-			size++;
-			percolateUp(heap,size);
-		}
-		
-		
-		
-		
-		public int getMin()
-		{
-				return heap.get(1);
-		}
-		
-		public void percolateUp(ArrayList<Integer> A,int i)
-		{
-			
-			int l,r,min,tmp,p;
-			
-			p = (int)Math.floor((i)/2);
-			min = i;
-			if(i<1)
-				return;
-			if(A.get(p)>A.get(min))
-			{
-				tmp = A.get(p);
-				A.set(p, A.get(min));
-				A.set(min,tmp);
-				min = p;
-				percolateUp(A,min);
-			}
-			
-		}
-		
-		
-		public void percolateDown(ArrayList<Integer> A, int i)
-		{
-			
-			int l,r,min,n,tmp;
-			
-			n = size;
-			l = 2*i;
-			r = 2*i+1;
-			
-			if(l>n && r>n)
-				return;
-			if(l<=n && A.get(i)>A.get(l))
-			{
-				min = l;
-			}
-			else
-			{
-				min = i;
-			}
-			
-			if(r<=n && A.get(r)<A.get(min))
-			{
-				min = r;
-			}
-			
-			if(min!=i)
-			{
-				tmp = A.get(min);
-				A.set(min, A.get(i));
-				A.set(i, tmp);
-				percolateDown(A,min);
-			}
-		}
-	}
-	
-	
 	class docidwithfreq
 	{
 		String docid;
@@ -184,17 +71,7 @@ public class CSE535Assignment {
 	static HashMap<String,LinkedList<docidwithfreq> > index_docId = new HashMap<String,LinkedList<docidwithfreq> >();
 	static HashMap<String,LinkedList<docidwithfreq> > index_termfreq = new HashMap<String,LinkedList<docidwithfreq> >();
 	static PriorityQueue<docidwithfreq> topk;
-	
-	public String print_output(String function_name)
-	{
-		String tmp = null;
-		if(function_name.equals("getPostings"))
-		{
-			
-		}
-		return tmp;
-	}
-	
+		
 	public void create_index(String index_file, int k)
 	{
 		String line = new String();
@@ -214,7 +91,6 @@ public class CSE535Assignment {
 			String auxdocid;
 			Integer auxtfreq;
 			int i,next,j=0,nterms,tmp;
-//			docidwithfreq[] docidaux = new docidwithfreq[5]; 
 			String[] tmp_docid;
 			while((line=bufferedreader.readLine())!=null)
 			{
@@ -226,7 +102,6 @@ public class CSE535Assignment {
 				LinkedList<docidwithfreq> docidlist = new LinkedList<docidwithfreq>();
 				PostingObject postOb = new PostingObject();
 				postOb.termfreq = aux_tfreq;
-			//	System.out.println(line.length());
 				if(topk.size()<k)
 				{
 					docidwithfreq aux = new docidwithfreq();					
@@ -265,7 +140,6 @@ public class CSE535Assignment {
 				postOb.index_termfreq = new LinkedList<docidwithfreq>();
 				postOb.index_termfreq.addAll(docidlist);
 				term_index.put(aux_term, postOb);
-	//			index_termfreq.put(aux_term, docidlist);
 			}
 			
 			bufferedreader.close();
@@ -278,7 +152,7 @@ public class CSE535Assignment {
 	
 	
 	
-	
+	//Method for TAAT AND
 	public Result termAtATimeAnd(String[] terms)
 	{
 		
@@ -336,6 +210,7 @@ public class CSE535Assignment {
 		return final_res;
 	}
 	
+	//Method for TAAT OR
 	public Result termAtATimeOr(String[] terms)
 	{
 		LinkedList<docidwithfreq> res = new LinkedList<docidwithfreq>();
@@ -346,8 +221,7 @@ public class CSE535Assignment {
 		
 		ArrayList<String> terms_list = new ArrayList<String>(Arrays.asList(terms));
 		Result final_res = new Result();
-		
-		
+				
 		for(i=0;i<terms_list.size();i++)
 		{
 			if(!term_index.containsKey(terms_list.get(i)))
@@ -363,7 +237,7 @@ public class CSE535Assignment {
 			return final_res;
 		}
 		
-		
+		terms = terms_list.toArray(new String[terms_list.size()]);
 		
 		int comp = 0;
 		res.addAll(term_index.get(terms[0]).index_termfreq);
@@ -409,26 +283,32 @@ public class CSE535Assignment {
 		
 	}
 	
-	public int findmax(ArrayList<Integer> pointers,String terms[])
+	//Method for finding maximum docId in an iteration for DAAT AND
+	public ArrayList<Integer> findmax(ArrayList<Integer> pointers,String terms[])
 	{
 		int res = 0;
 		int i,s = pointers.size();
+		ArrayList<Integer> finres = new ArrayList<Integer>();
 		String tmp = term_index.get(terms[0]).index_docId.get(pointers.get(0)).docid;
+		int count = 0;
 		for(i=0;i<s;i++)
 		{
+			count++;
 			if(tmp.compareTo(term_index.get(terms[i]).index_docId.get(pointers.get(i)).docid)<0)
 			{
 				res = i;
 				tmp = term_index.get(terms[i]).index_docId.get(pointers.get(i)).docid;
 			}
 		}
-		
-		return res;
+		finres.add(res);
+		finres.add(count);
+		return finres;
 		
 		
 	}
 	
 	
+	//DAAT AND method
 	public Result documentAtATimeAnd(String[] terms)
 	{
 		
@@ -462,10 +342,12 @@ public class CSE535Assignment {
 		int count = 0;
 		boolean flag = false;
 		int comp = 0;
+		ArrayList<Integer> temp = new ArrayList<Integer>();
 		while(true)
 		{
-			max = findmax(pointers,terms);
-			comp = comp + pointers.size();
+			temp = findmax(pointers,terms);
+			max = temp.get(0);
+			comp = comp + temp.get(1);
 			maxstring = term_index.get(terms[max]).index_docId.get(pointers.get(max)).docid;
 			count = 0;
 			flag = false;
@@ -473,10 +355,10 @@ public class CSE535Assignment {
 			{
 				
 				aux = term_index.get(terms[i]).index_docId;
-				comp++;
+				
 				if(pointers.get(i).compareTo(aux.size())<0)
 				{
-					
+					comp++;
 					tmp = term_index.get(terms[i]).index_docId.get(pointers.get(i)).docid;
 					if(maxstring.equals(tmp))
 					{
@@ -488,7 +370,6 @@ public class CSE535Assignment {
 						if(pointers.get(i).compareTo(aux.size())>=0)
 						{	
 							flag = true;
-				//			break;
 						}
 					}
 				}
@@ -531,26 +412,30 @@ public class CSE535Assignment {
 
 	}
 	
-
-	public int findmin(ArrayList<Integer> pointers,ArrayList<String> terms)
+	//Method for finding the minimum docID in an iteration for DAAT OR 
+	public ArrayList<Integer> findmin(ArrayList<Integer> pointers,ArrayList<String> terms)
 	{
 		int res = 0;
 		int i,s = pointers.size();
+		int count = 0;
+		ArrayList<Integer> finres = new ArrayList<Integer>();
 		String tmp = term_index.get(terms.get(0)).index_docId.get(pointers.get(0)).docid;
 		for(i=0;i<s;i++)
 		{
+			count++;
 			if(tmp.compareTo(term_index.get(terms.get(i)).index_docId.get(pointers.get(i)).docid)>0)
 			{
 				res = i;
 				tmp = term_index.get(terms.get(i)).index_docId.get(pointers.get(i)).docid;
 			}
 		}
-		
-		return res;				
+		finres.add(res);
+		finres.add(count);
+		return finres;				
 	}
 	
 	
-	
+	//DAAT OR method 
 	public Result documentAtATimeOr(String[] terms)
 	{
 
@@ -559,7 +444,7 @@ public class CSE535Assignment {
 		LinkedList<docidwithfreq> aux = new LinkedList<docidwithfreq>();
 		
 		Result final_res = new Result(); 
-		int i,nterms = terms.length;
+		int i,nterms;
 		ArrayList<String> terms_list = new ArrayList<String>(Arrays.asList(terms));
 		
 		for(i=0;i<terms_list.size();i++)
@@ -579,6 +464,9 @@ public class CSE535Assignment {
 		
 		ArrayList<Integer> pointers = new ArrayList<Integer>(terms_list.size());
 		
+		nterms = terms_list.size();
+		
+
 		
 		for(i=0;i<nterms;i++)
 			pointers.add(0);
@@ -588,20 +476,33 @@ public class CSE535Assignment {
 		int count = 0;
 		boolean flag = false;
 		int comp = 0;
+		ArrayList<Integer> temp = new ArrayList<Integer>();
+		
+		if(nterms==1)
+		{
+			
+			final_res.comp = comp;
+			final_res.result = term_index.get(terms_list.get(0)).index_docId;		
+			return final_res;
+		}
+		
+		
 		while(nterms>0)
 		{
 			
-			min = findmin(pointers,terms_list);
-			comp = comp + pointers.size();
+			temp = findmin(pointers,terms_list);
+			min = temp.get(0);
+			comp = comp + temp.get(1);
 			minstring = term_index.get(terms_list.get(min)).index_docId.get(pointers.get(min)).docid;
 			count = 0;
 			res.add(term_index.get(terms_list.get(min)).index_docId.get(pointers.get(min)));
 			for(i=0;i<pointers.size();i++)
 			{
 				aux = term_index.get(terms_list.get(i)).index_docId;
-				comp++;
+				
 				if(pointers.get(i).compareTo(aux.size())<0)
 				{
+					comp++;
 					tmp = term_index.get(terms_list.get(i)).index_docId.get(pointers.get(i)).docid;
 					if(minstring.equals(tmp))
 					{
@@ -624,22 +525,6 @@ public class CSE535Assignment {
 				}
 				
 			}
-			/*if(count == pointers.size())
-			{
-				res.add(term_index.get(terms[min]).index_docId.get(pointers.get(min)));
-				
-				for(i=0;i<nterms;i++)
-				{
-					pointers.set(i, pointers.get(i)+1);
-					aux = term_index.get(terms[i]).index_docId;
-					comp++;
-					if(pointers.get(i).compareTo(aux.size())<0)
-					{
-						pointers.remove(i);
-						terms_list.remove(i);
-					}
-				}
-			}*/
 			
 			nterms = terms_list.size();
 		}
@@ -650,7 +535,7 @@ public class CSE535Assignment {
 	}
 	
 	
-	public void runqueries(String queryfile,int k)
+	public void runqueries(String queryfile,String outfile,int k)
 	{
 		String line = new String();
 
@@ -658,13 +543,10 @@ public class CSE535Assignment {
 		try{
 			FileReader fileReader = new FileReader(url.getPath());
 			BufferedReader bufferedreader = new BufferedReader(fileReader);
-			String[] aux_postingdocs,terms,sorted_terms;
-			String temp;
-			String auxdocid;
-			Integer auxtfreq;
-			int i,next,j=0;
+			String[] terms,sorted_terms;
+			int i,j=0;
 	
-			PrintWriter writer = new PrintWriter("output.txt","UTF-8");			
+			PrintWriter writer = new PrintWriter(outfile,"UTF-8");			
 			writer.println("FUNCTION: getTopK "+k);
 			writer.print("Result: ");
 			String[] res = new String[k];			
@@ -674,7 +556,7 @@ public class CSE535Assignment {
 			}
 			for(i=0;i<k-1;i++)
 			{
-				writer.print(res[i]+",");
+				writer.print(res[i]+", ");
 			}
 			writer.print(res[i]);
 			writer.println();
@@ -692,13 +574,22 @@ public class CSE535Assignment {
 				if(line.trim().isEmpty())
 					break;
 				terms = line.split(" ");
-				sorted_terms = Arrays.copyOf(terms, terms.length);
+				int nterm = 0;
+				ArrayList<String> sorted_list = new ArrayList<String>();
+				for(i=0;i<terms.length;i++)
+				{
+					if(term_index.containsKey(terms[i]))
+					{
+						sorted_list.add(terms[i]);
+					}
+				}
+				sorted_terms = sorted_list.toArray(new String[sorted_list.size()]);
 				
 				//Printing postings
 				for(j=0;j<terms.length;j++)
 				{
 					
-					writer.println("FUNCTION: getPostings "+terms[j]+", ");
+					writer.println("FUNCTION: getPostings "+terms[j]);
 					writer.print("Ordered by doc IDs: ");
 					
 					if(!term_index.containsKey(terms[j]))
@@ -741,9 +632,9 @@ public class CSE535Assignment {
 				out = termAtATimeAnd(terms);				
 				endTime = System.currentTimeMillis();
 				result = out.result;
-				if(result.size()==0)
+				if(result ==null)
 				{
-					writer.println(0+" documents are found");
+					writer.println("0 documents are found");
 				}
 				else
 				{
@@ -754,12 +645,10 @@ public class CSE535Assignment {
 				
 				//optimized termATATimeAnd by sorting the terms based on frequency
 				Arrays.sort(sorted_terms,new termcompare());
-				for(i=0;i<sorted_terms.length;i++)
-					System.out.print(sorted_terms[i]+" "+term_index.get(sorted_terms[i]).termfreq);
 				out = termAtATimeAnd(sorted_terms);
 				writer.println(out.comp+" comparisions are made with optimization");
 				writer.print("Result: ");
-				if(result.size()>0)
+				if(result !=null && result.size()>0)
 				{
 					for(i=0;i<result.size()-1;i++)
 					{
@@ -779,9 +668,9 @@ public class CSE535Assignment {
 				out = termAtATimeOr(terms);				
 				endTime = System.currentTimeMillis();
 				result = out.result;
-				if(result.size()==0)
+				if(result ==null)
 				{
-					writer.println(0+" documents are found");
+					writer.println("0 documents are found");
 				}
 				else
 				{
@@ -795,7 +684,7 @@ public class CSE535Assignment {
 				writer.println(out.comp+" comparisions are made with optimization");
 				writer.print("Result: ");
 				
-				if(result.size()>0)
+				if(result !=null && result.size()>0)
 				{
 					for(i=0;i<result.size()-1;i++)
 					{
@@ -815,9 +704,9 @@ public class CSE535Assignment {
 				out = documentAtATimeAnd(terms);				
 				endTime = System.currentTimeMillis();
 				result = out.result;
-				if(result.size()==0)
+				if(result ==null)
 				{
-					writer.println(0+" documents are found");
+					writer.println("0 documents are found");
 				}
 				else
 				{
@@ -827,7 +716,7 @@ public class CSE535Assignment {
 				writer.println((endTime-startTime)/1000+" seconds are used");
 				
 				writer.print("Result: ");
-				if(result.size()>0)
+				if(result !=null && result.size()>0)
 				{	
 					for(i=0;i<result.size()-1;i++)
 					{
@@ -852,7 +741,7 @@ public class CSE535Assignment {
 				writer.println((endTime-startTime)/1000+" seconds are used");
 				
 				writer.print("Result: ");
-				if(result.size()>0)
+				if(result !=null && result.size()>0)
 				{	
 					for(i=0;i<result.size()-1;i++)
 					{
@@ -874,25 +763,7 @@ public class CSE535Assignment {
 			System.out.println(e);
 		}	
 	}
-	
-	public void check(LinkedList<docidwithfreq> res)
-	{
-		int i;
-		int l = res.size();
 		
-		for(i=0;i<l-1;i++)
-		{
-			if(res.get(i).docid.equals(res.get(i+1).docid))
-			{
-				
-				System.out.println("duplicate "+res.get(i).docid);
-			}
-		}
-		
-		
-	}
-	
-	
 	public static void main(String args[])
 	{
 		
@@ -903,7 +774,7 @@ public class CSE535Assignment {
 		int k = Integer.valueOf(args[2]);
 		String query_file = args[3];
 		obj.create_index(index_file,k);
-		obj.runqueries(query_file,k);
+		obj.runqueries(query_file,output_log,k);
 		
 	}
 	
